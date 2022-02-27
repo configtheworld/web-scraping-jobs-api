@@ -1,17 +1,20 @@
 import requests as _requests
-import scrapy
+from bs4 import BeautifulSoup 
+from typing import List
 
+def _genrate_url(query:str,location:str,remote:bool,visa:bool)-> str:
+    url = "https://stackoverflow.com/jobs?q={query}&l={location}&r={remote}&v={visa}"
+    return url
 
-class BlogSpider(scrapy.Spider):
-    name = 'blogspider'
-    start_urls = ['https://stackoverflow.com/jobs']
+def _get_page(url: str)-> BeautifulSoup:
+    page=_requests.get(url)
+    soup = BeautifulSoup(page.content,"html.parser")
+    return soup
 
-    def parse(self, response):
-        for title in response.css('.s-link stretched-link'):
-            yield {'title': title.css('::text').get()}
+def list_of_jobs(query:str,location:str,remote:bool,visa:bool)->List[str]:
+    url = _genrate_url(query,location,remote,visa)
+    page = _get_page(url)
+    raw_events= page.find_all(class_="-job js-result")
+    print(raw_events)
 
-        for next_page in response.css('a.next'):
-            yield response.follow(next_page, self.parse)
-
-        print(response.data)
-
+list_of_jobs("front-end","germany",True,True)
